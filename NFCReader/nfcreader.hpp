@@ -3,8 +3,11 @@
 
 #include <string>
 #include <functional>
-#include "libpafe/libpafe.h"
 #include <thread>
+
+extern "C" {
+    #include "libpafe/libpafe.h"
+}
 
 class NFCReader {
 public:
@@ -15,6 +18,7 @@ public:
     void CancelRead();
 private:
     pasori* nfc;
+    felica* tag;
     bool on_read;
     std::thread th;
 

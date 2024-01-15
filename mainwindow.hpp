@@ -9,6 +9,7 @@
 #include <QTableWidgetItem>
 #include <QLabel>
 #include <QPushButton>
+#include <QTimer>
 #include "CodeReader/codereader.hpp"
 #include "NFCReader/nfcreader.hpp"
 
@@ -57,6 +58,7 @@ private:
     Ui::MainWindow *ui;
     CodeReader* jan;
     NFCReader* nfc;
+    QTimer* return_timer;
 
     void page_changed(int);
 
@@ -70,6 +72,8 @@ private:
     void back_clicked();
     void cash_clicked();
     void felica_scanned(std::string);
+    
+    void return_to_pos();
 
 };
 #endif // MAINWINDOW_H

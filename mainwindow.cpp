@@ -30,10 +30,16 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     jan = reader;
     jan->startRead(std::bind(&MainWindow::add_item, this, std::placeholders::_1));
     nfc = new NFCReader();
+
+    //完了画面
+    return_timer = new QTimer(this);
+    connect(return_timer, &QTimer::timeout, this, &MainWindow::return_to_pos);
+    return_timer->setSingleShot(true);
 }
 
 MainWindow::~MainWindow(){
     jan->~CodeReader();
+    nfc->~NFCReader();
     delete ui;
 }
 
@@ -47,6 +53,9 @@ void MainWindow::page_changed(int index){
         nfc->startRead(std::bind(&MainWindow::felica_scanned, this, std::placeholders::_1));
     }else{
         nfc->CancelRead();
+    }
+    if(index == 2){
+        return_timer->start(3000);
     }
 }
 
@@ -68,9 +77,9 @@ void MainWindow::buy_clicked(){
     if(ui->scanned_list->rowCount() == 0){
         return;
     }
+    ui->purchase->setText(add_YEN(amount_sum()));
     ui->stackedWidget->setCurrentIndex(1);
 }
-
 
 void MainWindow::add_item(std::string janCode){
     int row = ui->scanned_list->rowCount();
@@ -110,6 +119,14 @@ void MainWindow::cash_clicked(){
     dialog->exec();
 }
 void MainWindow::felica_scanned(std::string idm){
-    auto dialog = new InfoDialog(this, idm);
-    dialog->exec();
+    std::cout << idm << std::endl;
+    sleep(1);
+    ui->stackedWidget->setCurrentIndex(2);
+}
+
+/*
+完了画面
+*/
+void MainWindow::return_to_pos(){
+    ui->stackedWidget->setCurrentIndex(0);
 }

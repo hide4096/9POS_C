@@ -8,6 +8,7 @@ CodeReader::CodeReader(const std::string& keyboardDevice)
 
 CodeReader::~CodeReader()
 {
+    stopRead();
     closeKeyboardDevice();
 }
 
@@ -27,7 +28,7 @@ void CodeReader::stopRead()
 {
     if(!th.joinable())
     {
-        std::cerr << "Not reading" << std::endl;
+        //std::cerr << "Not reading" << std::endl;
         return;
     }
     on_read = false;
@@ -45,6 +46,8 @@ void CodeReader::readBarcode(std::function<void(std::string)> callback)
     std::string janCode;
     char ch;
 
+    janCode.clear();
+
     while(on_read)
     {
         poll(fds, 1, 100);
@@ -56,7 +59,10 @@ void CodeReader::readBarcode(std::function<void(std::string)> callback)
             {
                 if(ev.code == KEY_ENTER)
                 {
-                    callback(janCode);
+                    if(janCode.length() == 13 || janCode.length() == 8)
+                    {
+                        callback(janCode);
+                    }
                     janCode.clear();
                 }
                 else

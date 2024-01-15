@@ -1,5 +1,6 @@
 #include "NFCReader/nfcreader.hpp"
 #include <iostream>
+#include <sstream>
 
 NFCReader::NFCReader(){
     nfc = pasori_open();
@@ -15,6 +16,7 @@ NFCReader::NFCReader(){
 }
 
 NFCReader::~NFCReader(){
+    CancelRead();
     CloseNFCReader();
 }
 
@@ -37,7 +39,7 @@ void NFCReader::startRead(std::function<void(std::string)> callback){
 
 void NFCReader::CancelRead(){
     if(!th.joinable()){
-        std::cerr << "Not reading" << std::endl;
+        //std::cerr << "Not reading" << std::endl;
         return;
     }
     on_read = false;
@@ -45,25 +47,30 @@ void NFCReader::CancelRead(){
 }
 
 void NFCReader::readNFC(std::function<void(std::string)> callback){
-    if(nfc == nullptr){
-        std::cerr << "No NFCReader found" << std::endl;
-        return;
-    }
-
-    felica* tag;
     while(on_read){
-        tag = felica_polling(nfc, FELICA_POLLING_ANY, 0, 0);
-        if(tag != nullptr){
-            break;
+        if(nfc == nullptr){
+            std::cerr << "No NFCReader found" << std::endl;
+            return;
         }
-    }
 
-    uint8_t idm;
-    if(felica_get_idm(tag, &idm) != 0){
-        std::cerr << "NFCReader get idm failed" << std::endl;
-        return;
-    }
+        tag = nullptr;
+        while(tag == nullptr){
+            tag = felica_polling(nfc, FELICA_POLLING_ANY, 0, 0);
+            if(!on_read){
+                return;
+            }
+        }
 
-    free(nfc);
-    callback(std::to_string(idm));
+        uint64_t idm;
+        if(felica_get_idm(tag, (uint8*)&idm) != 0){
+            std::cerr << "NFCReader get idm failed" << std::endl;
+            return;
+        }
+
+        free(tag);
+        //16進数で送る
+        std::stringstream ss;
+        ss << std::hex << std::uppercase << idm;
+        callback(ss.str());
+    }
 }

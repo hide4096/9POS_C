@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 project(9POS VERSION 0.1 LANGUAGES CXX)
 
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
@@ -13,6 +14,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+
+add_library(pafe SHARED IMPORTED)
+set_target_properties(pafe PROPERTIES IMPORTED_LOCATION /usr/local/lib/libpafe.so)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -48,8 +52,8 @@ else()
     endif()
 endif()
 
-target_link_libraries(9POS PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-
+target_include_directories(9POS PRIVATE /usr/local/include/libpafe)
+target_link_libraries(9POS PRIVATE pafe Qt${QT_VERSION_MAJOR}::Widgets)
 
 set_target_properties(9POS PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -62,8 +66,3 @@ set_target_properties(9POS PROPERTIES
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(9POS)
 endif()
-
-add_library(pafe SHARED IMPORTED)
-set_target_properties(pafe PROPERTIES IMPORTED_LOCATION /usr/local/lib/libpafe.so)
-target_include_directories(9POS PRIVATE /usr/local/include/libpafe)
-target_link_libraries(9POS PRIVATE pafe)
