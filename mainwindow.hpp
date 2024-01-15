@@ -10,6 +10,10 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QTimer>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+#include <QEvent>
 #include "CodeReader/codereader.hpp"
 #include "NFCReader/nfcreader.hpp"
 
@@ -45,6 +49,26 @@ public:
         connect(pushButton, &QPushButton::clicked, this, &InfoDialog::close);
     }
 };
+class DeviceReciever : public QObject
+{
+    Q_OBJECT
+public:
+    explicit DeviceReciever(){}
+    ~DeviceReciever(){}
+signals:
+    void on_recieve(std::string recv);
+public slots:
+    void emit_recieve(std::string recv){
+        emit on_recieve(recv);
+    }
+public:
+    void connect(std::string recv){
+        this->code = recv;
+        emit_recieve(recv);
+    }
+private:
+    std::string code;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -59,6 +83,10 @@ private:
     CodeReader* jan;
     NFCReader* nfc;
     QTimer* return_timer;
+    QSqlDatabase db;
+    DeviceReciever* jan_reciever;
+    DeviceReciever* nfc_reciever;
+    int amount_total;
 
     void page_changed(int);
 
@@ -66,7 +94,8 @@ private:
     void clean_clicked();
     void buy_clicked();
     QString add_YEN(int);
-    int amount_sum();
+    void amount_sum();
+    void scanned(std::string);
     void add_item(std::string);
     
     void back_clicked();
@@ -75,6 +104,10 @@ private:
     
     void return_to_pos();
 
+    void initialize_db();
+
 };
+
+
 #endif // MAINWINDOW_H
 
