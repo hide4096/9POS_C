@@ -1,0 +1,6 @@
+[submodule "libpafe"]
+	path = libpafe
+	url = https://github.com/muojp/libpafe.git
+[submodule "lib/libpafe"]
+	path = lib/libpafe
+	url = https://github.com/rfujita/libpafe.git
