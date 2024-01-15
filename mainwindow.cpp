@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     jan = reader;
     jan->startRead(std::bind(&DeviceReciever::connect, jan_reciever, std::placeholders::_1));
     nfc = new NFCReader();
+    on_scan = false;
 
     //データベース準備
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -66,11 +67,13 @@ MainWindow::~MainWindow(){
 void MainWindow::page_changed(int index){
     if(index == 0){
         jan->startRead(std::bind(&DeviceReciever::connect, jan_reciever, std::placeholders::_1));
+        on_scan = false;
     }else{
         jan->stopRead();
     }
     if(index == 1){
         nfc->startRead(std::bind(&DeviceReciever::connect, nfc_reciever, std::placeholders::_1));
+        on_working = false;
     }else{
         nfc->CancelRead();
     }
@@ -84,6 +87,14 @@ void MainWindow::page_changed(int index){
 */
 void MainWindow::undo_clicked(){
     ui->scanned_list->removeRow(ui->scanned_list->rowCount() - 1);
+    if(ui->scanned_list->rowCount() == 0){
+        ui->scan_amount->setText(add_YEN(0));
+    }else{
+        int row = ui->scanned_list->rowCount() - 1;
+        QString name = ui->scanned_list->item(row, 2)->text();
+        QString amount = ui->scanned_list->item(row, 1)->text();
+        ui->scan_amount->setText(name + "\t" + amount);
+    }
     amount_sum();
     ui->total_amount->setText(add_YEN(amount_total));
 }
@@ -113,6 +124,10 @@ stock:  在庫数
 */
 
 void MainWindow::add_item(std::string janCode){
+    if(on_scan){
+        return;
+    }
+    on_scan = true;
     int row = ui->scanned_list->rowCount();
     QSqlQuery query(db);
     query.exec("SELECT * FROM item WHERE JAN = '" + QString::fromStdString(janCode) + "'");
@@ -120,6 +135,7 @@ void MainWindow::add_item(std::string janCode){
     if(query.isNull(0)){
         auto dialog = new InfoDialog(this, "商品が見つかりませんでした");
         dialog->exec();
+        on_scan = false;
         return;
     }
     QString name = query.value(1).toString();
@@ -137,9 +153,9 @@ void MainWindow::add_item(std::string janCode){
     if(stock <= bulk){
         auto dialog = new InfoDialog(this, "在庫がありません");
         dialog->exec();
+        on_scan = false;
         return;
     }
-
     ui->scanned_list->insertRow(row);
     ui->scanned_list->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(janCode)));
     ui->scanned_list->setItem(row, 1, new QTableWidgetItem(add_YEN(amount)));
@@ -147,7 +163,8 @@ void MainWindow::add_item(std::string janCode){
 
     amount_sum();
     ui->total_amount->setText(add_YEN(amount_total));
-    ui->scan_amount->setText(add_YEN(100));
+    ui->scan_amount->setText(name + "\t" + add_YEN(amount));
+    on_scan = false;
 }
 
 
@@ -195,7 +212,10 @@ point:  買い物後のポイント
 time:   買い物した時間
 */
 void MainWindow::felica_scanned(std::string idm){
-    std::cout << idm << std::endl;
+    if(on_working){
+        return;
+    }
+    on_working = true;
 
     QSqlQuery query(db);
     query.exec("SELECT * FROM akapay WHERE IDm = '" + QString::fromStdString(idm) + "'");
@@ -205,6 +225,7 @@ void MainWindow::felica_scanned(std::string idm){
         query.exec("INSERT INTO log (IDm, JAN, amount, point) VALUES ('" + QString::fromStdString(idm) + "', '', 0, 0)");
         auto dialog = new InfoDialog(this, "このカードは登録されていません");
         dialog->exec();
+        on_working = false;
         return;
     }
 
@@ -216,11 +237,14 @@ void MainWindow::felica_scanned(std::string idm){
     if(point - amount_total < -limit_debt){
         auto dialog = new InfoDialog(this, "借金が上限を超えています");
         dialog->exec();
+        on_working = false;
         return;
     }
 
+
     for(int i = 0; i < ui->scanned_list->rowCount(); i++){
         QString jan = ui->scanned_list->item(i, 0)->text();
+
         query.exec("SELECT * FROM item WHERE JAN = '" + jan + "'");
         query.next();
         QString name = query.value(1).toString();
@@ -228,12 +252,19 @@ void MainWindow::felica_scanned(std::string idm){
         int stock = query.value(3).toInt();
         point -= amount;
         stock--;
-        query.exec("UPDATE stock SET item = " + QString::number(stock) + " WHERE JAN = '" + jan + "'");
+        query.exec("UPDATE item SET stock = " + QString::number(stock) + " WHERE JAN = '" + jan + "'");
         query.exec("INSERT INTO log (IDm, JAN, amount, point) VALUES ('" + QString::fromStdString(idm) + "', '" + jan + "', " + QString::number(amount) + ", " + QString::number(point) + ")");
     }
 
     query.exec("UPDATE akapay SET point = " + QString::number(point) + " WHERE IDm = '" + QString::fromStdString(idm) + "'");
 
+    ui->charge_balance->setText(add_YEN(point));
+    ui->msg_who->setText(name + "さん");
+    if(point < 0){
+        ui->charge_balance->setStyleSheet("color: red");
+    }
+    clean_clicked();
+    on_working = false;
     ui->stackedWidget->setCurrentIndex(2);
 }
 

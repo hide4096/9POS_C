@@ -87,6 +87,8 @@ private:
     DeviceReciever* jan_reciever;
     DeviceReciever* nfc_reciever;
     int amount_total;
+    bool on_working;
+    bool on_scan;
 
     void page_changed(int);
 
