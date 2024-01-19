@@ -21,7 +21,7 @@ public:
 private:
     int keyboard_fd;
     struct pollfd fds[1];
-    const std::string keyboardDevice;
+    const std::string reader_path;
     std::thread th;
     bool on_read;
 

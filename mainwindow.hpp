@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QDebug>
 #include <QDialog>
 #include <string>
 #include <functional>
@@ -14,6 +15,8 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QEvent>
+#include <QWaitCondition>
+#include <QMutex>
 #include "CodeReader/codereader.hpp"
 #include "NFCReader/nfcreader.hpp"
 
@@ -79,6 +82,21 @@ public:
     ~MainWindow();
 
 private:
+    struct card_info{
+        QString mail;
+        QString name;
+        int balance;
+        int limit;
+        bool is_admin;
+    };
+
+    struct item_info{
+        QString jan;
+        QString name;
+        int amount;
+        int stock;
+    };
+
     Ui::MainWindow *ui;
     CodeReader* jan;
     NFCReader* nfc;
@@ -89,13 +107,18 @@ private:
     int amount_total;
     bool on_working;
     bool on_scan;
+    int jump_page;
 
     void page_changed(int);
+
+    int getcardinfo(std::string, struct card_info*);
+    int getiteminfo(std::string, struct item_info*);
 
     void undo_clicked();
     void clean_clicked();
     void buy_clicked();
     QString add_YEN(int);
+    QString generate_item_and_YEN(QString, QString);
     void amount_sum();
     void scanned(std::string);
     void add_item(std::string);
@@ -108,6 +131,16 @@ private:
 
     void initialize_db();
 
+    void authorize(std::string);
+
+    void card_info(std::string);
+    void clear_menu();
+    void change_card_info();
+    void charge_card();
+
+    void item_info(std::string);
+    void change_item_info();
+    void add_stock();
 };
 
 

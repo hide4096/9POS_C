@@ -2,22 +2,25 @@
 #include <iostream>
 #include <sstream>
 
-NFCReader::NFCReader(){
-    nfc = pasori_open();
-    if(nfc == nullptr){
-        std::cerr << "NFCReader not found" << std::endl;
-        return;
-    }
-    if(pasori_init(nfc) != 0){
-        std::cerr << "NFCReader init failed" << std::endl;
-        return;
-    }
-    pasori_set_timeout(nfc, 300);
-}
+NFCReader::NFCReader(){}
 
 NFCReader::~NFCReader(){
     CancelRead();
-    CloseNFCReader();
+}
+
+void NFCReader::OpenNFCReader(){
+    if(nfc == nullptr){
+        nfc = pasori_open();
+        if(nfc == nullptr){
+            std::cerr << "NFCReader not found" << std::endl;
+            return;
+        }
+        if(pasori_init(nfc) != 0){
+            std::cerr << "NFCReader init failed" << std::endl;
+            return;
+        }
+        pasori_set_timeout(nfc, 300);
+    }
 }
 
 void NFCReader::CloseNFCReader(){
@@ -29,9 +32,11 @@ void NFCReader::CloseNFCReader(){
 
 void NFCReader::startRead(std::function<void(std::string)> callback){
     if(th.joinable()){
-        std::cerr << "Already reading" << std::endl;
+        std::cerr << "NFCReader is already running" << std::endl;
         return;
     }
+
+    OpenNFCReader();
 
     on_read = true;
     th = std::thread(&NFCReader::readNFC, this, callback);
@@ -42,6 +47,9 @@ void NFCReader::CancelRead(){
         //std::cerr << "Not reading" << std::endl;
         return;
     }
+
+    CloseNFCReader();
+
     on_read = false;
     th.join();
 }
@@ -49,7 +57,7 @@ void NFCReader::CancelRead(){
 void NFCReader::readNFC(std::function<void(std::string)> callback){
     while(on_read){
         if(nfc == nullptr){
-            std::cerr << "No NFCReader found" << std::endl;
+            std::cerr << "NFCReader is not initialized" << std::endl;
             return;
         }
 

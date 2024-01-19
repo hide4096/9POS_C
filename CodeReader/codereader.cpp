@@ -1,24 +1,22 @@
 #include "codereader.hpp"
 
-CodeReader::CodeReader(const std::string& keyboardDevice)
-    : keyboard_fd(-1), keyboardDevice(keyboardDevice)
-{
-    openKeyboardDevice();
-}
+CodeReader::CodeReader(const std::string& keyboardDevice) : reader_path(keyboardDevice){}
+
 
 CodeReader::~CodeReader()
 {
     stopRead();
-    closeKeyboardDevice();
 }
 
 void CodeReader::startRead(std::function<void(std::string)> callback)
 {
     if(th.joinable())
     {
-        std::cerr << "Already reading" << std::endl;
+        std::cerr << "Codereader is already running" << std::endl;
         return;
     }
+    keyboard_fd = -1;
+    openKeyboardDevice();
 
     on_read = true;
     th = std::thread(&CodeReader::readBarcode, this, callback);
@@ -31,6 +29,7 @@ void CodeReader::stopRead()
         //std::cerr << "Not reading" << std::endl;
         return;
     }
+    closeKeyboardDevice();
     on_read = false;
     th.join();
 }
@@ -82,8 +81,8 @@ void CodeReader::readBarcode(std::function<void(std::string)> callback)
 
 int CodeReader::openKeyboardDevice()
 {
-    keyboard_fd = open(keyboardDevice.c_str(), O_RDONLY);
-    ioctl(keyboard_fd, EVIOCGRAB, 1);   //権限を獲得
+    keyboard_fd = open(reader_path.c_str(), O_RDONLY);
+    //ioctl(keyboard_fd, EVIOCGRAB, 1);   //権限を獲得
     if (keyboard_fd == -1)
     {
         perror("open");
@@ -100,7 +99,7 @@ void CodeReader::closeKeyboardDevice()
 {
     if (keyboard_fd != -1)
     {
-        ioctl(keyboard_fd, EVIOCGRAB, 0);   //権限を解放
+        //ioctl(keyboard_fd, EVIOCGRAB, 0);   //権限を解放
         close(keyboard_fd);
     }
 }

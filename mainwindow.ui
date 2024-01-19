@@ -35,7 +35,7 @@
       <x>0</x>
       <y>0</y>
       <width>1280</width>
-      <height>781</height>
+      <height>800</height>
      </rect>
     </property>
     <property name="font">
@@ -50,15 +50,15 @@
      <string/>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="regi">
      <widget class="QLabel" name="total_amount">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>361</width>
+        <x>20</x>
+        <y>40</y>
+        <width>251</width>
         <height>141</height>
        </rect>
       </property>
@@ -71,13 +71,16 @@
        <enum>Qt::RightToLeft</enum>
       </property>
       <property name="text">
-       <string>10000</string>
+       <string>1000</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
       </property>
      </widget>
      <widget class="QPushButton" name="buy">
       <property name="geometry">
        <rect>
-        <x>850</x>
+        <x>860</x>
         <y>560</y>
         <width>411</width>
         <height>191</height>
@@ -95,10 +98,10 @@
      <widget class="QTableWidget" name="scanned_list">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>160</y>
+        <x>20</x>
+        <y>200</y>
         <width>801</width>
-        <height>591</height>
+        <height>551</height>
        </rect>
       </property>
       <property name="font">
@@ -134,7 +137,7 @@
        <number>3</number>
       </property>
       <attribute name="horizontalHeaderVisible">
-       <bool>true</bool>
+       <bool>false</bool>
       </attribute>
       <attribute name="horizontalHeaderCascadingSectionResizes">
        <bool>false</bool>
@@ -161,10 +164,10 @@
      <widget class="QPushButton" name="undo">
       <property name="geometry">
        <rect>
-        <x>850</x>
-        <y>160</y>
+        <x>860</x>
+        <y>200</y>
         <width>411</width>
-        <height>191</height>
+        <height>171</height>
        </rect>
       </property>
       <property name="font">
@@ -182,10 +185,10 @@
      <widget class="QPushButton" name="clean">
       <property name="geometry">
        <rect>
-        <x>850</x>
-        <y>360</y>
+        <x>860</x>
+        <y>380</y>
         <width>411</width>
-        <height>191</height>
+        <height>171</height>
        </rect>
       </property>
       <property name="font">
@@ -203,8 +206,8 @@
      <widget class="QLabel" name="scan_amount">
       <property name="geometry">
        <rect>
-        <x>530</x>
-        <y>60</y>
+        <x>540</x>
+        <y>100</y>
         <width>731</width>
         <height>91</height>
        </rect>
@@ -221,7 +224,49 @@
        <string>ノムさんの*  100</string>
       </property>
       <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       <set>Qt::AlignBottom|Qt::AlignRight|Qt::AlignTrailing</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="enter_purchase">
+      <property name="geometry">
+       <rect>
+        <x>1120</x>
+        <y>20</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>仕入れ</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="enter_card">
+      <property name="geometry">
+       <rect>
+        <x>900</x>
+        <y>20</y>
+        <width>201</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>チャージ</string>
       </property>
      </widget>
     </widget>
@@ -244,7 +289,7 @@
        <string>お支払い金額は</string>
       </property>
      </widget>
-     <widget class="QLabel" name="purchase">
+     <widget class="QLabel" name="amount">
       <property name="geometry">
        <rect>
         <x>110</x>
@@ -439,9 +484,750 @@
       </property>
      </widget>
     </widget>
+    <widget class="QWidget" name="card">
+     <widget class="QLineEdit" name="charge">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>510</y>
+        <width>581</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_charge">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>510</y>
+        <width>441</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>チャージ金額</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="do_charge">
+      <property name="geometry">
+       <rect>
+        <x>1060</x>
+        <y>510</y>
+        <width>211</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>チャージ</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="back_regi">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>戻る</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_idm">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>20</y>
+        <width>731</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="debt_limit">
+      <property name="geometry">
+       <rect>
+        <x>780</x>
+        <y>210</y>
+        <width>271</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="card_regist">
+      <property name="geometry">
+       <rect>
+        <x>1060</x>
+        <y>310</y>
+        <width>211</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>登録・修正</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="balance">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>210</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="name">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>110</y>
+        <width>771</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_balance">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>210</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>残高</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_name">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>110</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>名前</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_debt_limit">
+      <property name="geometry">
+       <rect>
+        <x>570</x>
+        <y>210</y>
+        <width>211</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>上限</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="mailaddress">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>310</y>
+        <width>771</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_mail">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>310</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>24</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>メールアドレス</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="add_1000">
+      <property name="geometry">
+       <rect>
+        <x>750</x>
+        <y>630</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>+1000</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="clear_charge">
+      <property name="geometry">
+       <rect>
+        <x>910</x>
+        <y>630</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>クリア</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="is_admin">
+      <property name="geometry">
+       <rect>
+        <x>1060</x>
+        <y>280</y>
+        <width>131</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>管理者権限</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="purchase_regi">
+     <widget class="QLabel" name="msg_jan">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>10</y>
+        <width>731</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="do_modify">
+      <property name="geometry">
+       <rect>
+        <x>1050</x>
+        <y>110</y>
+        <width>211</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>修正</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_buy_price">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>210</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>購入金額</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="buy_price">
+      <property name="geometry">
+       <rect>
+        <x>760</x>
+        <y>210</y>
+        <width>161</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="per8">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>440</y>
+        <width>96</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>8%</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="per10">
+      <property name="geometry">
+       <rect>
+        <x>610</x>
+        <y>440</y>
+        <width>96</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>10%</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="per0">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>440</y>
+        <width>96</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0%</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_sell_price">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>310</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>売値</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="sell_price">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>310</y>
+        <width>161</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="do_regist_item">
+      <property name="geometry">
+       <rect>
+        <x>1050</x>
+        <y>190</y>
+        <width>211</width>
+        <height>281</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>仕入れ</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_name_item">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>110</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>商品名</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="name_item">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>110</y>
+        <width>731</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="msg_num_buy">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>210</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>購入個数</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="num_buy">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>210</y>
+        <width>161</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="tax">
+      <property name="geometry">
+       <rect>
+        <x>390</x>
+        <y>440</y>
+        <width>71</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>消費税</string>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="purchase_log">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>500</y>
+        <width>1221</width>
+        <height>271</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+      </property>
+      <property name="autoScrollMargin">
+       <number>8</number>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="tabKeyNavigation">
+       <bool>false</bool>
+      </property>
+      <property name="showDropIndicator" stdset="0">
+       <bool>false</bool>
+      </property>
+      <property name="dragDropOverwriteMode">
+       <bool>false</bool>
+      </property>
+      <property name="defaultDropAction">
+       <enum>Qt::TargetMoveAction</enum>
+      </property>
+      <property name="columnCount">
+       <number>3</number>
+      </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>200</number>
+      </attribute>
+      <attribute name="horizontalHeaderHighlightSections">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+      <column/>
+      <column/>
+      <column/>
+     </widget>
+     <widget class="QLabel" name="msg_num_stock">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>310</y>
+        <width>281</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>在庫</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="num_stock">
+      <property name="geometry">
+       <rect>
+        <x>760</x>
+        <y>310</y>
+        <width>161</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="back_regi_2">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>10</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>戻る</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="auth">
+     <widget class="QLabel" name="msg_touch_2">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>170</y>
+        <width>1051</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>管理者のカードをタッチしてください</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="back_pos_2">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>410</y>
+        <width>511</width>
+        <height>331</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>48</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>戻る</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1280</width>
+     <height>18</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

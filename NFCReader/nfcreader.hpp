@@ -22,6 +22,7 @@ private:
     bool on_read;
     std::thread th;
 
+    void OpenNFCReader();
     void CloseNFCReader();
     void readNFC(std::function<void(std::string)>);
 };
