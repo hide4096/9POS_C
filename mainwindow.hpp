@@ -141,6 +141,8 @@ private:
     void item_info(std::string);
     void change_item_info();
     void add_stock();
+    void set_sellprice(int,int);
+    int calc_sellprice(const int);
 };
 
 

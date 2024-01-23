@@ -24,8 +24,16 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     connect(ui->buy, &QPushButton::clicked, this, &MainWindow::buy_clicked);
 
     connect(ui->enter_card, &QPushButton::clicked, this, [this](){
-        jump_page = 3;
-        ui->stackedWidget->setCurrentIndex(5);
+        //管理者権限ありのカードが一枚もない場合は通す
+        QSqlQuery query(db);
+        query.exec("SELECT * FROM akapay WHERE is_admin = 1");
+        query.next();
+        if(query.isNull(0)){
+            ui->stackedWidget->setCurrentIndex(3);
+        }else{
+            jump_page = 3;
+            ui->stackedWidget->setCurrentIndex(5);
+        }
     });
     connect(ui->enter_purchase, &QPushButton::clicked, this, [this](){
         jump_page = 4;
@@ -58,6 +66,21 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     connect(ui->back_regi, &QPushButton::clicked, this, &MainWindow::return_to_pos);
     connect(ui->do_modify, &QPushButton::clicked, this, &MainWindow::change_item_info);
     connect(ui->do_regist_item, &QPushButton::clicked, this, &MainWindow::add_stock);
+    connect(ui->num_buy, &QLineEdit::textChanged, this, [this](const QString &text){
+        set_sellprice(ui->buy_price->text().toInt(), text.toInt());
+    });
+    connect(ui->buy_price, &QLineEdit::textChanged, this, [this](const QString &text){
+        set_sellprice(text.toInt(), ui->num_buy->text().toInt());
+    });
+    connect(ui->per0, &QPushButton::clicked, this, [this](){
+        set_sellprice(ui->buy_price->text().toInt(), ui->num_buy->text().toInt());
+    });
+    connect(ui->per10, &QPushButton::clicked, this, [this](){
+        set_sellprice(ui->buy_price->text().toInt(), ui->num_buy->text().toInt());
+    });
+    connect(ui->per8, &QPushButton::clicked, this, [this](){
+        set_sellprice(ui->buy_price->text().toInt(), ui->num_buy->text().toInt());
+    });
 
 
     //認証画面
@@ -106,7 +129,7 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
 
     テーブル名: log
     カラム名: type date mail JAN amount point num_item stock
-    type:     種類(0:買い物, 1:チャージ, 2:仕入れ)
+    type:     種類(0:買い物, 1:チャージ, 2:仕入れ, 3:修正・登録)
     date:     タイムスタンプ
     name:     名前
     JAN:      バーコード
@@ -117,10 +140,9 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     */
 
     query.exec("CREATE TABLE IF NOT EXISTS item (JAN TEXT PRIMARY KEY, name TEXT, amount INTEGER, stock INTEGER)");
-    query.exec("CREATE TABLE IF NOT EXISTS akapay (name TEXT, IDm TEXT PRIMARY KEY, point INTEGER, limit_debt INTEGER, mail TEXT, is_admin BOOLEAN)");
+    query.exec("CREATE TABLE IF NOT EXISTS akapay (name TEXT PRIMARY KEY, mail TEXT, point INTEGER, limit_debt INTEGER, is_admin BOOLEAN)");
     query.exec("CREATE TABLE IF NOT EXISTS card (IDm TEXT PRIMARY KEY, name TEXT)");
     query.exec("CREATE TABLE IF NOT EXISTS log (type INTEGER, date TIMESTAMP DEFAULT (DATETIME('now', 'localtime')), name TEXT, JAN TEXT, amount INTEGER, point INTEGER, num_item INTEGER, stock INTEGER)");
-
 }
 
 MainWindow::~MainWindow(){
@@ -345,7 +367,7 @@ void MainWindow::cash_clicked(){
  */
 int MainWindow::getcardinfo(std::string idm, struct card_info* info){
     QSqlQuery query(db);
-    query.exec("SELECT * FROM card WHERE idm = '" + QString::fromStdString(idm) + "'");
+    query.exec("SELECT * FROM card WHERE IDm = '" + QString::fromStdString(idm) + "'");
     query.next();
     if(query.isNull(0)){
         auto dialog = new InfoDialog(this, "このカードは登録されていません");
@@ -356,7 +378,12 @@ int MainWindow::getcardinfo(std::string idm, struct card_info* info){
     QString name = query.value(1).toString();
     query.exec("SELECT * FROM akapay WHERE name = '" + name + "'");
     query.next();
+    if(query.isNull(0)){
+        auto dialog = new InfoDialog(this, "akapayの情報がありません");
+        dialog->exec();
 
+        return -1;
+    }
     info->name = query.value(0).toString();
     info->mail = query.value(1).toString();
     info->balance = query.value(2).toInt();
@@ -404,6 +431,9 @@ void MainWindow::felica_scanned(std::string idm){
 
         //在庫を減らす
         query.exec("UPDATE item SET stock = " + QString::number(item.stock) + " WHERE JAN = '" + jan + "'");
+
+        //ログに保存
+        query.exec("INSERT INTO log (type, name, JAN, amount, point, stock) VALUES (0, '" + info.name + "', '" + jan + "', " + QString::number(item.amount) + ", " + QString::number(info.balance) + ", " + QString::number(item.stock) + ")");
     }
 
     //akapayのポイントを減らす
@@ -448,12 +478,13 @@ void MainWindow::authorize(std::string idm){
     if(getcardinfo(idm, &info) == -1){
         on_working = false;
         return;
-    }
-    if(!info.is_admin){
-        auto dialog = new InfoDialog(this, "管理者権限がありません");
-        dialog->exec();
-        on_working = false;
-        return;
+    }else{ 
+        if(!info.is_admin){
+            auto dialog = new InfoDialog(this, "管理者権限がありません");
+            dialog->exec();
+            on_working = false;
+            return;
+        }
     }
 
     ui->stackedWidget->setCurrentIndex(jump_page);
@@ -478,6 +509,7 @@ void MainWindow::card_info(std::string idm){
     struct card_info info;
     if(getcardinfo(idm, &info) != -1){
         ui->name->setText(info.name);
+        ui->name->setReadOnly(true);
         ui->balance->setText(QString::number(info.balance));
         if(info.balance < 0){
             ui->balance->setStyleSheet("color: red");
@@ -485,9 +517,8 @@ void MainWindow::card_info(std::string idm){
         ui->debt_limit->setText(QString::number(info.limit));
         ui->is_admin->setChecked(info.is_admin);
         ui->mailaddress->setText(info.mail);
-        ui->mailaddress->setReadOnly(true);
     }else{
-        ui->mailaddress->setReadOnly(false);
+        ui->name->setReadOnly(false);
     }
     on_working = false;
 }
@@ -502,6 +533,7 @@ void MainWindow::clear_menu(){
     ui->debt_limit->setText("");
     ui->msg_idm->setText("");
     ui->charge->setText("0");
+    ui->mailaddress->setText("");
 
     ui->msg_jan->setText("");
     ui->name_item->setText("");
@@ -546,20 +578,25 @@ void MainWindow::change_card_info(){
 
     if(query.isNull(0)){
         //新規カード
-        query.exec("INSERT INTO card (IDm, mail) VALUES ('" + idm + "', '" + info.mail + "')");
-    }else{
-        //名前は変更不可
-        ui->name->setReadOnly(true);
+        query.exec("INSERT INTO card (IDm, name) VALUES ('" + idm + "', '" + info.name + "')");
     }
 
     //akapayの情報を登録・更新
     query.exec("SELECT * FROM akapay WHERE name = '" + info.name + "'");
     query.next();
     if(query.isNull(0)){
-        query.exec("INSERT INTO akapay (name, point, limit_debt, mail, is_admin) VALUES ('" + info.name + "', '" + QString::number(info.balance) + ", " + QString::number(info.limit) + ", '" + info.mail + "', " + QString::number(info.is_admin) + ")");
+        QString _send = "INSERT INTO akapay (name, point, limit_debt, mail, is_admin) VALUES ('" + info.name + "', " + QString::number(info.balance) + ", " + QString::number(info.limit) + ", '" + info.mail + "', " + QString::number(info.is_admin) + ")";
+        bool success = query.exec(_send);
+        if(!success){
+            qDebug() << query.lastError();
+            qDebug() << _send;
+        }
     }else{
         query.exec("UPDATE akapay SET mail = '" + info.mail + "', point = " + QString::number(info.balance) + ", limit_debt = " + QString::number(info.limit) + "', is_admin = " + QString::number(info.is_admin) + " WHERE name = '" + info.name + "'");
     }
+
+    //ログに保存
+    query.exec("INSERT INTO log (type, name, amount, point) VALUES (3, '" + info.name + "', 0, " + QString::number(info.balance) + ")");
 
     auto dialog = new InfoDialog(this, "登録しました");
     dialog->exec();
@@ -662,6 +699,9 @@ void MainWindow::change_item_info(){
         query.exec("UPDATE item SET name = '" + info.name + "', amount = " + QString::number(info.amount) + ", stock = " + QString::number(info.stock) + " WHERE JAN = '" + info.jan + "'");
     }
 
+    //ログに保存
+    query.exec("INSERT INTO log (type, name, JAN, amount, stock) VALUES (3, '" + info.name + "', '" + info.jan + "', " + QString::number(info.amount) + ", " + QString::number(info.stock) + ")");
+
     auto dialog = new InfoDialog(this, "登録しました");
     dialog->exec();
 
@@ -676,6 +716,7 @@ void MainWindow::add_stock(){
     info.stock = ui->num_stock->text().toInt();
 
     int buy = ui->num_buy->text().toInt();
+    int buy_price = ui->buy_price->text().toInt();
 
     if(info.jan == ""){
         auto dialog = new InfoDialog(this, "スキャンしてください");
@@ -699,9 +740,43 @@ void MainWindow::add_stock(){
         query.exec("UPDATE item SET name = '" + info.name + "', amount = " + QString::number(info.amount) + ", stock = " + QString::number(info.stock) + " WHERE JAN = '" + info.jan + "'");
     }
 
+    //ログに保存
+    query.exec("INSERT INTO log (type, name, JAN, amount, num_item, stock) VALUES (2, '" + info.name + "', '" + info.jan + "', " + QString::number(buy_price) + ", " + QString::number(buy) + ")");
+
     ui->purchase_log->insertRow(ui->purchase_log->rowCount());
     QString log_msg = info.name + "\t" + add_YEN(info.amount) + "\t" + QString::number(info.stock);
     ui->purchase_log->setItem(ui->purchase_log->rowCount() - 1, 0, new QTableWidgetItem(log_msg));
 
     clear_menu();
+}
+
+int MainWindow::calc_sellprice(const int price){
+    float tax = 1.0;
+    if(ui->per8->isChecked()){
+        tax = 1.08;
+    }else if(ui->per10->isChecked()){
+        tax = 1.1;
+    }
+
+    int _price = (int)((float)price * tax);
+
+    if(_price < 25){
+        _price += 5;
+    }else if(_price < 50){
+        _price += 10;
+    }else if(_price < 100){
+        _price += 20;
+    }else if(_price < 200){
+        _price *= 1.25;
+    }else{
+        _price *= 1.3;
+    }
+    return _price;
+}
+
+void MainWindow::set_sellprice(int _price, int _items){
+    if(_items != 0){
+        ui->sell_price->setText(QString::number(calc_sellprice(_price / _items)));
+        return;
+    }
 }

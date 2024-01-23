@@ -2,7 +2,11 @@
 #include <iostream>
 #include <sstream>
 
-NFCReader::NFCReader(){}
+NFCReader::NFCReader(){
+    nfc = nullptr;
+    tag = nullptr;
+    on_read = false;
+}
 
 NFCReader::~NFCReader(){
     CancelRead();
@@ -48,10 +52,9 @@ void NFCReader::CancelRead(){
         return;
     }
 
-    CloseNFCReader();
-
     on_read = false;
     th.join();
+    CloseNFCReader();
 }
 
 void NFCReader::readNFC(std::function<void(std::string)> callback){

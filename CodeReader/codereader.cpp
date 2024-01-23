@@ -29,9 +29,9 @@ void CodeReader::stopRead()
         //std::cerr << "Not reading" << std::endl;
         return;
     }
-    closeKeyboardDevice();
     on_read = false;
     th.join();
+    closeKeyboardDevice();
 }
 
 void CodeReader::readBarcode(std::function<void(std::string)> callback)
