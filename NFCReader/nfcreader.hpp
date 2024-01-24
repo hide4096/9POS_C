@@ -4,6 +4,9 @@
 #include <string>
 #include <functional>
 #include <thread>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 extern "C" {
     #include "libpafe/libpafe.h"

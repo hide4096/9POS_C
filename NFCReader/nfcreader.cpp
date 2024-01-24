@@ -73,7 +73,7 @@ void NFCReader::readNFC(std::function<void(std::string)> callback){
         }
 
         uint64_t idm;
-        if(felica_get_idm(tag, (uint8*)&idm) != 0){
+        if(felica_get_idm(tag, (uint8_t*)&idm) != 0){
             std::cerr << "NFCReader get idm failed" << std::endl;
             return;
         }
@@ -81,7 +81,10 @@ void NFCReader::readNFC(std::function<void(std::string)> callback){
         free(tag);
         //16進数で送る
         std::stringstream ss;
-        ss << std::hex << std::uppercase << idm;
+        uint8_t *idm_ptr = (uint8_t*)&idm;
+        for (int i = 0; i < 8; i++) {
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int)idm_ptr[i];
+        }
         callback(ss.str());
     }
 }

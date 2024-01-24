@@ -575,14 +575,23 @@ void MainWindow::change_card_info(){
     info.limit = ui->debt_limit->text().toInt();
     info.is_admin = ui->is_admin->isChecked();
 
-    if(info.name == "" || info.member_id == ""){
+    //名前が登録済みかチェック
+    QSqlQuery query(db);
+    query.exec("SELECT * FROM akapay WHERE name = '" + info.name + "'");
+    query.next();
+    if(!query.isNull(0)){
+        QString _msg = "カードを" + info.name + "さんに追加します";
+        auto dialog = new InfoDialog(this, _msg.toStdString());
+        dialog->exec();
+        query.exec("INSERT INTO card (IDm, name) VALUES ('" + idm + "', '" + info.name + "')");
+        return;
+    }else if(info.name == "" || info.member_id == ""){
         auto dialog = new InfoDialog(this, "未記入項目があります");
         dialog->exec();
         return;
     }
 
     //カードの登録
-    QSqlQuery query(db);
     query.exec("SELECT * FROM card WHERE IDm = '" + idm + "'");
     query.next();
 
