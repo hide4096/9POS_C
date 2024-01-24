@@ -17,6 +17,7 @@
 #include <QEvent>
 #include <QWaitCondition>
 #include <QMutex>
+#include <QDateTime>
 #include <curl/curl.h>
 #include "CodeReader/codereader.hpp"
 #include "NFCReader/nfcreader.hpp"

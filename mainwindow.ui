@@ -50,7 +50,7 @@
      <string/>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="regi">
      <widget class="QLabel" name="total_amount">
@@ -58,7 +58,7 @@
        <rect>
         <x>20</x>
         <y>40</y>
-        <width>251</width>
+        <width>591</width>
         <height>141</height>
        </rect>
       </property>
@@ -1110,7 +1110,7 @@
        <enum>Qt::TargetMoveAction</enum>
       </property>
       <property name="columnCount">
-       <number>3</number>
+       <number>0</number>
       </property>
       <attribute name="horizontalHeaderVisible">
        <bool>false</bool>
@@ -1133,9 +1133,6 @@
       <attribute name="verticalHeaderCascadingSectionResizes">
        <bool>false</bool>
       </attribute>
-      <column/>
-      <column/>
-      <column/>
      </widget>
      <widget class="QLabel" name="msg_num_stock">
       <property name="geometry">

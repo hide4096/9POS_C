@@ -67,6 +67,9 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     });
 
     //仕入れ画面
+    ui->purchase_log->setColumnCount(1);
+    auto _header_purchase_log = ui->purchase_log->horizontalHeader();
+    _header_purchase_log->setSectionResizeMode(QHeaderView::Stretch);
     connect(ui->back_regi, &QPushButton::clicked, this, &MainWindow::return_to_pos);
     connect(ui->do_modify, &QPushButton::clicked, this, &MainWindow::change_item_info);
     connect(ui->do_regist_item, &QPushButton::clicked, this, &MainWindow::add_stock);
@@ -179,6 +182,7 @@ void MainWindow::page_changed(int index){
                 connect(jan_reciever, &DeviceReciever::on_recieve, this, &MainWindow::add_item);
                 break;
             case 4:
+                ui->purchase_log->setRowCount(0);
                 connect(jan_reciever, &DeviceReciever::on_recieve, this, &MainWindow::item_info);
                 break;
         }
@@ -333,7 +337,7 @@ QString MainWindow::add_YEN(int amount){
  * @return QString 
  */
 QString MainWindow::generate_item_and_YEN(QString name, QString amount){
-    return name + "\t" + amount;
+    return name + " | " + amount;
 }
 
 /**
@@ -403,7 +407,8 @@ int MainWindow::getcardinfo(std::string idm, struct card_info* info){
  * @param idm 
  */
 void MainWindow::felica_scanned(std::string idm){
-    if(on_working){
+    int cart_size = ui->scanned_list->rowCount();
+    if(on_working || cart_size == 0){
         return;
     }
     on_working = true;
@@ -423,9 +428,11 @@ void MainWindow::felica_scanned(std::string idm){
     }
 
     QSqlQuery query(db);
+    //日時を記入
+    QString _buy_msg = "#### " + QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss") + " ####\n";
 
     //買い物カゴから一個ずつ処理
-    for(int i = 0; i < ui->scanned_list->rowCount(); i++){
+    for(int i = 0; i < cart_size; i++){
         QString jan = ui->scanned_list->item(i, 0)->text();
         struct item_info item;
         getiteminfo(jan.toStdString(), &item);
@@ -438,16 +445,8 @@ void MainWindow::felica_scanned(std::string idm){
 
         //ログに保存
         query.exec("INSERT INTO log (type, name, JAN, amount, point, stock) VALUES (0, '" + info.name + "', '" + jan + "', " + QString::number(item.amount) + ", " + QString::number(info.balance) + ", " + QString::number(item.stock) + ")");
-        QString _buy_msg = generate_item_and_YEN(item.name, add_YEN(item.amount));
-        post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
+        _buy_msg = _buy_msg + QString::number(i+1) + " | " + generate_item_and_YEN(item.name, add_YEN(item.amount)) + "\n";
     }
-
-    //akapayのポイントを減らす
-    query.exec("UPDATE akapay SET point = " + QString::number(info.balance) + " WHERE name = '" + info.name + "'");
-    QString _balance_msg = "残高は" + add_YEN(info.balance) + "です";
-    post_slack(_balance_msg.toStdString(), info.member_id.toStdString());
-
-
 
     //会計終了画面の準備
     ui->charge_balance->setText(add_YEN(info.balance));
@@ -456,8 +455,15 @@ void MainWindow::felica_scanned(std::string idm){
         ui->charge_balance->setStyleSheet("color: red");
     }
     clean_clicked();
-    on_working = false;
     ui->stackedWidget->setCurrentIndex(2);
+
+    //akapayのポイントを減らす
+    query.exec("UPDATE akapay SET point = " + QString::number(info.balance) + " WHERE name = '" + info.name + "'");
+    _buy_msg = _buy_msg + "残高は" + add_YEN(info.balance) + "です";
+    post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
+    //qDebug() << _buy_msg;
+
+    on_working = false;
 }
 
 /*
@@ -576,19 +582,28 @@ void MainWindow::change_card_info(){
     info.is_admin = ui->is_admin->isChecked();
 
     //名前が登録済みかチェック
+    if(info.name == ""){
+        auto dialog = new InfoDialog(this, "名前を入力してください");
+        dialog->exec();
+        return;
+    }
+
     QSqlQuery query(db);
     query.exec("SELECT * FROM akapay WHERE name = '" + info.name + "'");
     query.next();
-    if(!query.isNull(0)){
-        QString _msg = "カードを" + info.name + "さんに追加します";
-        auto dialog = new InfoDialog(this, _msg.toStdString());
-        dialog->exec();
-        query.exec("INSERT INTO card (IDm, name) VALUES ('" + idm + "', '" + info.name + "')");
-        return;
-    }else if(info.name == "" || info.member_id == ""){
-        auto dialog = new InfoDialog(this, "未記入項目があります");
-        dialog->exec();
-        return;
+    
+    if(info.member_id == ""){
+        if(!query.isNull(0)){
+            QString _msg = "カードを" + info.name + "さんに追加します";
+            auto dialog = new InfoDialog(this, _msg.toStdString());
+            dialog->exec();
+            query.exec("INSERT INTO card (IDm, name) VALUES ('" + idm + "', '" + info.name + "')");
+            return;
+        }else{
+            auto dialog = new InfoDialog(this, "SlackメンバーIDを入力してください");
+            dialog->exec();
+            return;
+        }
     }
 
     //カードの登録
@@ -768,8 +783,9 @@ void MainWindow::add_stock(){
     //ログに保存
     query.exec("INSERT INTO log (type, name, JAN, amount, num_item, stock) VALUES (2, '" + info.name + "', '" + info.jan + "', " + QString::number(buy_price) + ", " + QString::number(buy) + ")");
 
+    //操作履歴を表示
     ui->purchase_log->insertRow(ui->purchase_log->rowCount());
-    QString log_msg = info.name + "\t" + add_YEN(info.amount) + "\t" + QString::number(info.stock);
+    QString log_msg = info.name + "\t| " + add_YEN(info.amount) + "\t| " + QString::number(info.stock) + "\t| " + QString::number(buy);
     ui->purchase_log->setItem(ui->purchase_log->rowCount() - 1, 0, new QTableWidgetItem(log_msg));
 
     clear_menu();
@@ -833,7 +849,6 @@ int MainWindow::post_slack(std::string msg, std::string channel){
     curl_easy_cleanup(curl);
 
     if(res != CURLE_OK){
-        qDebug() << curl_easy_strerror(res);
         return -1;
     }
     return 0;
