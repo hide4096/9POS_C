@@ -61,6 +61,10 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     connect(ui->clear_charge, &QPushButton::clicked, this, [this](){
         ui->charge->setText("0");
     });
+    connect(ui->slack_test, &QPushButton::clicked, this, [this](){
+        std::string _memberid = ui->memberid->text().toStdString();
+        post_slack("通知テスト", _memberid);
+    });
 
     //仕入れ画面
     connect(ui->back_regi, &QPushButton::clicked, this, &MainWindow::return_to_pos);
@@ -117,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     テーブル名: akapay
     カラム名: name mail point limit_debt
     name:       名前(プライマリー)
-    mail:       メールアドレス
+    memberID:       SlackメンバーID
     point:      ポイント(チャージで+、買い物で-)
     limit_debt: 借金の上限(正の値)
     is_admin:   管理者権限
@@ -140,7 +144,7 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     */
 
     query.exec("CREATE TABLE IF NOT EXISTS item (JAN TEXT PRIMARY KEY, name TEXT, amount INTEGER, stock INTEGER)");
-    query.exec("CREATE TABLE IF NOT EXISTS akapay (name TEXT PRIMARY KEY, mail TEXT, point INTEGER, limit_debt INTEGER, is_admin BOOLEAN)");
+    query.exec("CREATE TABLE IF NOT EXISTS akapay (name TEXT PRIMARY KEY, memberID TEXT, point INTEGER, limit_debt INTEGER, is_admin BOOLEAN)");
     query.exec("CREATE TABLE IF NOT EXISTS card (IDm TEXT PRIMARY KEY, name TEXT)");
     query.exec("CREATE TABLE IF NOT EXISTS log (type INTEGER, date TIMESTAMP DEFAULT (DATETIME('now', 'localtime')), name TEXT, JAN TEXT, amount INTEGER, point INTEGER, num_item INTEGER, stock INTEGER)");
 }
@@ -385,7 +389,7 @@ int MainWindow::getcardinfo(std::string idm, struct card_info* info){
         return -1;
     }
     info->name = query.value(0).toString();
-    info->mail = query.value(1).toString();
+    info->member_id = query.value(1).toString();
     info->balance = query.value(2).toInt();
     info->limit = query.value(3).toInt();
     info->is_admin = query.value(4).toBool();
@@ -434,10 +438,16 @@ void MainWindow::felica_scanned(std::string idm){
 
         //ログに保存
         query.exec("INSERT INTO log (type, name, JAN, amount, point, stock) VALUES (0, '" + info.name + "', '" + jan + "', " + QString::number(item.amount) + ", " + QString::number(info.balance) + ", " + QString::number(item.stock) + ")");
+        QString _buy_msg = generate_item_and_YEN(item.name, add_YEN(item.amount));
+        post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
     }
 
     //akapayのポイントを減らす
     query.exec("UPDATE akapay SET point = " + QString::number(info.balance) + " WHERE name = '" + info.name + "'");
+    QString _balance_msg = "残高は" + add_YEN(info.balance) + "です";
+    post_slack(_balance_msg.toStdString(), info.member_id.toStdString());
+
+
 
     //会計終了画面の準備
     ui->charge_balance->setText(add_YEN(info.balance));
@@ -516,7 +526,7 @@ void MainWindow::card_info(std::string idm){
         }
         ui->debt_limit->setText(QString::number(info.limit));
         ui->is_admin->setChecked(info.is_admin);
-        ui->mailaddress->setText(info.mail);
+        ui->memberid->setText(info.member_id);
     }else{
         ui->name->setReadOnly(false);
     }
@@ -533,7 +543,7 @@ void MainWindow::clear_menu(){
     ui->debt_limit->setText("");
     ui->msg_idm->setText("");
     ui->charge->setText("0");
-    ui->mailaddress->setText("");
+    ui->memberid->setText("");
 
     ui->msg_jan->setText("");
     ui->name_item->setText("");
@@ -559,13 +569,13 @@ void MainWindow::change_card_info(){
 
     //記入内容の取得
     struct card_info info;
-    info.mail = ui->mailaddress->text();
+    info.member_id = ui->memberid->text();
     info.name = ui->name->text();
     info.balance = ui->balance->text().toInt();
     info.limit = ui->debt_limit->text().toInt();
     info.is_admin = ui->is_admin->isChecked();
 
-    if(info.name == "" || info.mail == ""){
+    if(info.name == "" || info.member_id == ""){
         auto dialog = new InfoDialog(this, "未記入項目があります");
         dialog->exec();
         return;
@@ -585,14 +595,19 @@ void MainWindow::change_card_info(){
     query.exec("SELECT * FROM akapay WHERE name = '" + info.name + "'");
     query.next();
     if(query.isNull(0)){
-        QString _send = "INSERT INTO akapay (name, point, limit_debt, mail, is_admin) VALUES ('" + info.name + "', " + QString::number(info.balance) + ", " + QString::number(info.limit) + ", '" + info.mail + "', " + QString::number(info.is_admin) + ")";
+        QString _send = "INSERT INTO akapay (name, point, limit_debt, memberID, is_admin) VALUES ('" + info.name + "', " + QString::number(info.balance) + ", " + QString::number(info.limit) + ", '" + info.member_id + "', " + QString::number(info.is_admin) + ")";
         bool success = query.exec(_send);
         if(!success){
             qDebug() << query.lastError();
             qDebug() << _send;
         }
     }else{
-        query.exec("UPDATE akapay SET mail = '" + info.mail + "', point = " + QString::number(info.balance) + ", limit_debt = " + QString::number(info.limit) + "', is_admin = " + QString::number(info.is_admin) + " WHERE name = '" + info.name + "'");
+        QString _send = "UPDATE akapay SET memberID = '" + info.member_id + "', point = " + QString::number(info.balance) + ", limit_debt = " + QString::number(info.limit) + ", is_admin = " + QString::number(info.is_admin) + " WHERE name = '" + info.name + "'";
+        bool success = query.exec(_send);
+        if(!success){
+            qDebug() << query.lastError();
+            qDebug() << _send;
+        }
     }
 
     //ログに保存
@@ -635,7 +650,8 @@ void MainWindow::charge_card(){
     query.exec("UPDATE akapay SET point = " + QString::number(info.balance) + " WHERE name = '" + info.name + "'");
 
     //チャージ完了画面
-    QString _charged_msg = info.name + "さんに\n" + add_YEN(ui->charge->text().toInt()) + "チャージしました";
+    QString _charged_msg = add_YEN(ui->charge->text().toInt()) + "チャージしました";
+    post_slack(_charged_msg.toStdString(), info.member_id.toStdString());
     auto dialog = new InfoDialog(this, _charged_msg.toStdString());
     dialog->exec();
 
@@ -779,4 +795,37 @@ void MainWindow::set_sellprice(int _price, int _items){
         ui->sell_price->setText(QString::number(calc_sellprice(_price / _items)));
         return;
     }
+}
+
+
+int MainWindow::post_slack(std::string msg, std::string channel){
+    CURL *curl;
+    CURLcode res;
+    curl = curl_easy_init();
+    if(curl == nullptr){
+        qDebug() << "curl_easy_init() failed";
+        return -1;
+    }
+    struct curl_slist* headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    /*
+    Slack通知データ
+        channel: チャンネル名
+        text:    投稿内容
+        username:ユーザー名(9号館コンビニシステムで固定)
+        icon_emoji:アイコン(:smile_cat:で固定)
+        link_names:メンションを有効にする(1で固定)
+    */
+    std::string _msg = "{\"channel\":\"" + channel + "\",\"text\":\"" + msg + "\",\"username\":\"9号館コンビニシステム\",\"icon_emoji\":\":saposen:\",\"link_names\":1}";
+    curl_easy_setopt(curl, CURLOPT_URL, SLACK_URL);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, _msg.c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+
+    if(res != CURLE_OK){
+        qDebug() << curl_easy_strerror(res);
+        return -1;
+    }
+    return 0;
 }

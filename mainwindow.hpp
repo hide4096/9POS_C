@@ -17,8 +17,10 @@
 #include <QEvent>
 #include <QWaitCondition>
 #include <QMutex>
+#include <curl/curl.h>
 #include "CodeReader/codereader.hpp"
 #include "NFCReader/nfcreader.hpp"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,7 +33,7 @@ public:
     InfoDialog(QWidget *parent = nullptr, std::string text = "")
      : QDialog(parent)
     {
-        setWindowTitle("ソイヤ");
+        setWindowTitle("Notice");
         setFixedSize(614, 196);
         QFont font;
         font.setPointSize(16);
@@ -83,7 +85,7 @@ public:
 
 private:
     struct card_info{
-        QString mail;
+        QString member_id;
         QString name;
         int balance;
         int limit;
@@ -96,6 +98,8 @@ private:
         int amount;
         int stock;
     };
+
+    const char* SLACK_URL = "https://hooks.slack.com/services/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";
 
     Ui::MainWindow *ui;
     CodeReader* jan;
@@ -143,6 +147,8 @@ private:
     void add_stock();
     void set_sellprice(int,int);
     int calc_sellprice(const int);
+
+    int post_slack(std::string, std::string);
 };
 
 
