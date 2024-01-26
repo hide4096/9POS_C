@@ -18,10 +18,11 @@
 #include <QWaitCondition>
 #include <QMutex>
 #include <QDateTime>
+#include <QMediaPlayer>
+#include <QMediaPlaylist>
 #include <curl/curl.h>
 #include "CodeReader/codereader.hpp"
 #include "NFCReader/nfcreader.hpp"
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -109,6 +110,9 @@ private:
     QSqlDatabase db;
     DeviceReciever* jan_reciever;
     DeviceReciever* nfc_reciever;
+    QMediaPlayer* player;
+    QMediaPlaylist* playlist;
+
     int amount_total;
     bool on_working;
     bool on_scan;

@@ -89,6 +89,11 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
         set_sellprice(ui->buy_price->text().toInt(), ui->num_buy->text().toInt());
     });
 
+    //音声再生
+    player = new QMediaPlayer(this);
+    playlist = new QMediaPlaylist(player);
+    playlist->addMedia(QUrl("./sound/paypay.mp3"));
+
 
     //認証画面
     connect(ui->back_pos_2, &QPushButton::clicked, this, &MainWindow::return_to_pos);
@@ -453,6 +458,8 @@ void MainWindow::felica_scanned(std::string idm){
     ui->msg_who->setText(info.name + "さん");
     if(info.balance < 0){
         ui->charge_balance->setStyleSheet("color: red");
+    }else{
+        ui->charge_balance->setStyleSheet("color: black");
     }
     clean_clicked();
     ui->stackedWidget->setCurrentIndex(2);
@@ -462,6 +469,9 @@ void MainWindow::felica_scanned(std::string idm){
     _buy_msg = _buy_msg + "残高は" + add_YEN(info.balance) + "です";
     post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
     //qDebug() << _buy_msg;
+
+    player->setPlaylist(playlist);
+    player->play();
 
     on_working = false;
 }
@@ -529,6 +539,8 @@ void MainWindow::card_info(std::string idm){
         ui->balance->setText(QString::number(info.balance));
         if(info.balance < 0){
             ui->balance->setStyleSheet("color: red");
+        }else{
+            ui->balance->setStyleSheet("color: black");
         }
         ui->debt_limit->setText(QString::number(info.limit));
         ui->is_admin->setChecked(info.is_admin);
