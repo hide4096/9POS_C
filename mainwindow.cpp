@@ -89,12 +89,6 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
         set_sellprice(ui->buy_price->text().toInt(), ui->num_buy->text().toInt());
     });
 
-    //音声再生
-    player = new QMediaPlayer(this);
-    playlist = new QMediaPlaylist(player);
-    playlist->addMedia(QUrl("./sound/paypay.mp3"));
-
-
     //認証画面
     connect(ui->back_pos_2, &QPushButton::clicked, this, &MainWindow::return_to_pos);
 
@@ -110,6 +104,10 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     jan->startRead(std::bind(&DeviceReciever::connect, jan_reciever, std::placeholders::_1));
     nfc = new NFCReader();
     on_scan = false;
+
+    //音声準備
+    player = new QMediaPlayer(this);
+    player->setMedia(QUrl("paypay.mp3"));
 
     //データベース準備
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -470,7 +468,8 @@ void MainWindow::felica_scanned(std::string idm){
     post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
     //qDebug() << _buy_msg;
 
-    player->setPlaylist(playlist);
+    //音声再生
+    player->setVolume(100);
     player->play();
 
     on_working = false;
