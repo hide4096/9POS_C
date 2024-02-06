@@ -214,7 +214,7 @@
       </property>
       <property name="font">
        <font>
-        <pointsize>36</pointsize>
+        <pointsize>30</pointsize>
        </font>
       </property>
       <property name="layoutDirection">

@@ -102,6 +102,9 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     connect(ui->back_pos_2, &QPushButton::clicked, this, &MainWindow::return_to_pos);
 
     //棚卸し画面
+    ui->inventory_log->setColumnCount(1);
+    auto _header_inventory_log = ui->inventory_log->horizontalHeader();
+    _header_inventory_log->setSectionResizeMode(QHeaderView::Stretch);
     connect(ui->back_regi_3, &QPushButton::clicked, this, &MainWindow::return_to_pos);
 
     //デバイス準備
@@ -226,9 +229,15 @@ void MainWindow::page_changed(int index){
         QSqlQuery query(db);
         query.exec("SELECT * FROM item WHERE stock > 0");
         while(query.next()){
-            ui->inventory_log->insertRow(ui->purchase_log->rowCount());
-            QString log_msg = query.value(1).toString() + "\t| " + add_YEN(query.value(2).toInt()) + "\t| " + query.value(3).toString() + "\t| " + query.value(4).toString();
-            ui->inventory_log->setItem(ui->purchase_log->rowCount() - 1, 0, new QTableWidgetItem(log_msg));
+            struct item_info info;
+            info.jan = query.value(0).toString();
+            info.name = query.value(1).toString();
+            info.amount = query.value(2).toInt();
+            info.stock = query.value(3).toInt();
+            QString log_msg = info.name + "\t| " + add_YEN(info.amount) + "\t| " + QString::number(info.stock);
+            qDebug() << log_msg;
+            ui->inventory_log->insertRow(ui->inventory_log->rowCount());
+            ui->inventory_log->setItem(ui->inventory_log->rowCount() - 1, 0, new QTableWidgetItem(log_msg));
         }
     }
 }
