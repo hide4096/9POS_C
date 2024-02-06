@@ -24,6 +24,11 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     connect(ui->buy, &QPushButton::clicked, this, &MainWindow::buy_clicked);
 
     connect(ui->enter_card, &QPushButton::clicked, this, [this](){
+        //音声準備
+        player->setMedia(QUrl("./error.wav"));
+        player->setVolume(100);
+        player->play();
+
         //管理者権限ありのカードが一枚もない場合は通す
         QSqlQuery query(db);
         query.exec("SELECT * FROM akapay WHERE is_admin = 1");
@@ -105,9 +110,7 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     nfc = new NFCReader();
     on_scan = false;
 
-    //音声準備
     player = new QMediaPlayer(this);
-    player->setMedia(QUrl("paypay.mp3"));
 
     //データベース準備
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -208,7 +211,7 @@ void MainWindow::page_changed(int index){
         on_working = false;
     }
     if(index == 2){
-        return_timer->start(3000);
+        return_timer->start(8000);
     }
 }
 
@@ -467,10 +470,6 @@ void MainWindow::felica_scanned(std::string idm){
     _buy_msg = _buy_msg + "残高は" + add_YEN(info.balance) + "です";
     post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
     //qDebug() << _buy_msg;
-
-    //音声再生
-    player->setVolume(100);
-    player->play();
 
     on_working = false;
 }
@@ -759,6 +758,9 @@ void MainWindow::change_item_info(){
     clear_menu();
 }
 
+
+//仕入れ
+
 void MainWindow::add_stock(){
     struct item_info info;
     info.jan = ui->msg_jan->text();
@@ -784,15 +786,16 @@ void MainWindow::add_stock(){
     QSqlQuery query(db);
     query.exec("SELECT * FROM item WHERE JAN = '" + info.jan + "'");
     query.next();
+
+    info.stock += buy;
     if(query.isNull(0)){
         query.exec("INSERT INTO item (JAN, name, amount, stock) VALUES ('" + info.jan + "', '" + info.name + "', " + QString::number(info.amount) + ", " + QString::number(info.stock) + ")");
     }else{
-        info.stock += buy;
         query.exec("UPDATE item SET name = '" + info.name + "', amount = " + QString::number(info.amount) + ", stock = " + QString::number(info.stock) + " WHERE JAN = '" + info.jan + "'");
     }
 
     //ログに保存
-    query.exec("INSERT INTO log (type, name, JAN, amount, num_item, stock) VALUES (2, '" + info.name + "', '" + info.jan + "', " + QString::number(buy_price) + ", " + QString::number(buy) + ")");
+    query.exec("INSERT INTO log (type, name, JAN, amount, num_item, stock) VALUES (2, '" + info.name + "', '" + info.jan + "', " + QString::number(buy_price) + ", " + QString::number(buy) + "," + QString::number(info.stock) + ")");
 
     //操作履歴を表示
     ui->purchase_log->insertRow(ui->purchase_log->rowCount());
