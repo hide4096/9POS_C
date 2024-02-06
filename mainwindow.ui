@@ -269,6 +269,27 @@
        <string>チャージ</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="enter_inventory">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>20</y>
+        <width>201</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>在庫確認</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="payment">
      <widget class="QLabel" name="msg_amountis">
@@ -864,7 +885,7 @@
        <rect>
         <x>480</x>
         <y>210</y>
-        <width>281</width>
+        <width>401</width>
         <height>91</height>
        </rect>
       </property>
@@ -874,7 +895,7 @@
        </font>
       </property>
       <property name="text">
-       <string>購入金額</string>
+       <string>購入額(合計)</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -883,7 +904,7 @@
      <widget class="QLineEdit" name="buy_price">
       <property name="geometry">
        <rect>
-        <x>760</x>
+        <x>880</x>
         <y>210</y>
         <width>161</width>
         <height>91</height>
@@ -1039,7 +1060,7 @@
        </font>
       </property>
       <property name="text">
-       <string>購入個数</string>
+       <string>購入数</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -1139,7 +1160,7 @@
        <rect>
         <x>480</x>
         <y>310</y>
-        <width>281</width>
+        <width>401</width>
         <height>91</height>
        </rect>
       </property>
@@ -1158,7 +1179,7 @@
      <widget class="QLineEdit" name="num_stock">
       <property name="geometry">
        <rect>
-        <x>760</x>
+        <x>880</x>
         <y>310</y>
         <width>161</width>
         <height>91</height>
@@ -1235,6 +1256,92 @@
       <property name="checked">
        <bool>false</bool>
       </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="inventory">
+     <widget class="QPushButton" name="back_regi_3">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>戻る</string>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="inventory_log">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>1221</width>
+        <height>671</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+      </property>
+      <property name="autoScrollMargin">
+       <number>8</number>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="tabKeyNavigation">
+       <bool>false</bool>
+      </property>
+      <property name="showDropIndicator" stdset="0">
+       <bool>false</bool>
+      </property>
+      <property name="dragDropOverwriteMode">
+       <bool>false</bool>
+      </property>
+      <property name="defaultDropAction">
+       <enum>Qt::TargetMoveAction</enum>
+      </property>
+      <property name="columnCount">
+       <number>0</number>
+      </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>200</number>
+      </attribute>
+      <attribute name="horizontalHeaderHighlightSections">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
      </widget>
     </widget>
    </widget>
