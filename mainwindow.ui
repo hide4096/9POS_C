@@ -50,7 +50,7 @@
      <string/>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="regi">
      <widget class="QLabel" name="total_amount">
@@ -230,7 +230,7 @@
      <widget class="QPushButton" name="enter_purchase">
       <property name="geometry">
        <rect>
-        <x>1120</x>
+        <x>1110</x>
         <y>20</y>
         <width>141</width>
         <height>71</height>
@@ -272,9 +272,9 @@
      <widget class="QPushButton" name="enter_inventory">
       <property name="geometry">
        <rect>
-        <x>680</x>
+        <x>740</x>
         <y>20</y>
-        <width>201</width>
+        <width>151</width>
         <height>71</height>
        </rect>
       </property>
@@ -288,6 +288,27 @@
       </property>
       <property name="text">
        <string>在庫確認</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="enter_akapay">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>20</y>
+        <width>101</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>徴収</string>
       </property>
      </widget>
     </widget>
@@ -1262,7 +1283,7 @@
      <widget class="QPushButton" name="back_regi_3">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>30</x>
         <y>10</y>
         <width>141</width>
         <height>71</height>
@@ -1283,7 +1304,7 @@
      <widget class="QTableWidget" name="inventory_log">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>30</x>
         <y>100</y>
         <width>1221</width>
         <height>671</height>
@@ -1342,6 +1363,92 @@
       <attribute name="verticalHeaderCascadingSectionResizes">
        <bool>false</bool>
       </attribute>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="akapay">
+     <widget class="QTableWidget" name="akapay_log">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>100</y>
+        <width>1221</width>
+        <height>671</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+      </property>
+      <property name="autoScrollMargin">
+       <number>8</number>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="tabKeyNavigation">
+       <bool>false</bool>
+      </property>
+      <property name="showDropIndicator" stdset="0">
+       <bool>false</bool>
+      </property>
+      <property name="dragDropOverwriteMode">
+       <bool>false</bool>
+      </property>
+      <property name="defaultDropAction">
+       <enum>Qt::TargetMoveAction</enum>
+      </property>
+      <property name="columnCount">
+       <number>0</number>
+      </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>200</number>
+      </attribute>
+      <attribute name="horizontalHeaderHighlightSections">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+     </widget>
+     <widget class="QPushButton" name="back_regi_4">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>10</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Takao Pゴシック</family>
+        <pointsize>24</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>戻る</string>
+      </property>
      </widget>
     </widget>
    </widget>

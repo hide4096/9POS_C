@@ -48,6 +48,10 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
         jump_page = 6;
         ui->stackedWidget->setCurrentIndex(5);
     });
+    connect(ui->enter_akapay, &QPushButton::clicked, this, [this](){
+        jump_page = 7;
+        ui->stackedWidget->setCurrentIndex(5);
+    });
 
     //会計画面
     connect(ui->back_pos, &QPushButton::clicked, this, &MainWindow::return_to_pos);
@@ -106,6 +110,13 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     auto _header_inventory_log = ui->inventory_log->horizontalHeader();
     _header_inventory_log->setSectionResizeMode(QHeaderView::Stretch);
     connect(ui->back_regi_3, &QPushButton::clicked, this, &MainWindow::return_to_pos);
+
+    //棚卸し画面
+    ui->akapay_log->setColumnCount(1);
+    auto _header_akapay_log = ui->akapay_log->horizontalHeader();
+    _header_akapay_log->setSectionResizeMode(QHeaderView::Stretch);
+    connect(ui->back_regi_4, &QPushButton::clicked, this, &MainWindow::return_to_pos);
+
 
     //デバイス準備
     qRegisterMetaType<std::string>("std::string");
@@ -238,6 +249,22 @@ void MainWindow::page_changed(int index){
             qDebug() << log_msg;
             ui->inventory_log->insertRow(ui->inventory_log->rowCount());
             ui->inventory_log->setItem(ui->inventory_log->rowCount() - 1, 0, new QTableWidgetItem(log_msg));
+        }
+    }
+    if(index == 7){
+        //債務者を表示
+        ui->akapay_log->setRowCount(0);
+        QSqlQuery query(db);
+        query.exec("SELECT * FROM akapay WHERE point < 0");
+        while(query.next()){
+            struct card_info info;
+            info.name = query.value(1).toString();
+            info.balance = query.value(2).toInt();
+            info.limit = query.value(3).toInt();
+            QString log_msg = info.name + "\t| " + add_YEN(info.balance) + "\t| " + QString::number(info.limit);
+            qDebug() << log_msg;
+            ui->akapay_log->insertRow(ui->akapay_log->rowCount());
+            ui->akapay_log->setItem(ui->akapay_log->rowCount() - 1, 0, new QTableWidgetItem(log_msg));
         }
     }
 }
