@@ -152,6 +152,7 @@ private:
     int calc_sellprice(const int);
 
     int post_slack(std::string, std::string);
+    void post_owner(std::string);
 };
 
 

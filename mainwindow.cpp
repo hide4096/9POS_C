@@ -258,7 +258,7 @@ void MainWindow::page_changed(int index){
         query.exec("SELECT * FROM akapay WHERE point < 0");
         while(query.next()){
             struct card_info info;
-            info.name = query.value(1).toString();
+            info.name = query.value(0).toString();
             info.balance = query.value(2).toInt();
             info.limit = query.value(3).toInt();
             QString log_msg = info.name + "\t| " + add_YEN(info.balance) + "\t| " + QString::number(info.limit);
@@ -523,6 +523,8 @@ void MainWindow::felica_scanned(std::string idm){
     query.exec("UPDATE akapay SET point = " + QString::number(info.balance) + " WHERE name = '" + info.name + "'");
     _buy_msg = _buy_msg + "残高は" + add_YEN(info.balance) + "です";
     post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
+    _buy_msg = info.name + "\n" + _buy_msg;
+    post_owner(_buy_msg.toStdString());
     //qDebug() << _buy_msg;
 
     on_working = false;
@@ -740,6 +742,8 @@ void MainWindow::charge_card(){
     //チャージ完了画面
     QString _charged_msg = add_YEN(ui->charge->text().toInt()) + "チャージしました";
     post_slack(_charged_msg.toStdString(), info.member_id.toStdString());
+    _charged_msg = info.name + "\n" + _charged_msg;
+    post_owner(_charged_msg.toStdString());
     auto dialog = new InfoDialog(this, _charged_msg.toStdString());
     dialog->exec();
 
@@ -891,6 +895,7 @@ void MainWindow::set_sellprice(int _price, int _items){
 }
 
 
+
 int MainWindow::post_slack(std::string msg, std::string channel){
     CURL *curl;
     CURLcode res;
@@ -920,4 +925,12 @@ int MainWindow::post_slack(std::string msg, std::string channel){
         return -1;
     }
     return 0;
+}
+
+void MainWindow::post_owner(std::string msg){
+    QSqlQuery query(db);
+    query.exec("SELECT * FROM akapay WHERE is_admin = 1");
+    while(query.next()){
+        post_slack(msg, query.value(1).toString().toStdString());
+    }
 }
