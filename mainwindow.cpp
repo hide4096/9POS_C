@@ -918,6 +918,7 @@ int MainWindow::post_slack(std::string msg, std::string channel){
     curl_easy_setopt(curl, CURLOPT_URL, SLACK_URL);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, _msg.c_str());
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5); // Set timeout to 5 seconds
     res = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
 
