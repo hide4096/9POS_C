@@ -16,6 +16,7 @@
 #include <QtSql/QSqlError>
 #include <QEvent>
 #include <QWaitCondition>
+#include <QThread>
 #include <QMutex>
 #include <QDateTime>
 #include <QMediaPlayer>
@@ -100,8 +101,6 @@ private:
         int stock;
     };
 
-    const char* SLACK_URL = "https://hooks.slack.com/services/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";
-
     Ui::MainWindow *ui;
     CodeReader* jan;
     NFCReader* nfc;
@@ -151,8 +150,43 @@ private:
     void set_sellprice(int,int);
     int calc_sellprice(const int);
 
-    int post_slack(std::string, std::string);
+    void post_slack(std::string, std::string);
     void post_owner(std::string);
+};
+
+#include <QThread>
+#include <QDebug>
+#include <curl/curl.h>
+
+class SlackPoster : public QThread {
+    Q_OBJECT
+private:
+    std::string message;
+    std::string channel;
+    const char* SLACK_URL = "https://hooks.slack.com/services/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";
+
+public:
+    SlackPoster(const std::string &msg, const std::string &chn) : message(msg), channel(chn) {}
+
+protected:
+    void run() override {
+        CURL *curl;
+        CURLcode res;
+        curl = curl_easy_init();
+        if(curl == nullptr){
+            qDebug() << "curl_easy_init() failed";
+            return;
+        }
+        struct curl_slist* headers = nullptr;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        std::string _msg = "{\"channel\":\"" + channel + "\",\"text\":\"" + message + "\",\"username\":\"9号館コンビニシステム\",\"icon_emoji\":\":saposen:\",\"link_names\":1}";
+        curl_easy_setopt(curl, CURLOPT_URL, SLACK_URL);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, _msg.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5); // Set timeout to 5 seconds
+        res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+    }
 };
 
 

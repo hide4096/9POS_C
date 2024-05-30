@@ -521,13 +521,18 @@ void MainWindow::felica_scanned(std::string idm){
 
     //akapayのポイントを減らす
     query.exec("UPDATE akapay SET point = " + QString::number(info.balance) + " WHERE name = '" + info.name + "'");
-    _buy_msg = _buy_msg + "残高は" + add_YEN(info.balance) + "です";
-    post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
-    _buy_msg = info.name + "\n" + _buy_msg;
-    post_owner(_buy_msg.toStdString());
-    //qDebug() << _buy_msg;
 
     on_working = false;
+
+    _buy_msg = _buy_msg + "残高は" + add_YEN(info.balance) + "です";
+    post_slack(_buy_msg.toStdString(), info.member_id.toStdString());
+    query.exec("SELECT * FROM akapay WHERE name = '" + info.name + "'");
+    query.next();
+    if(!query.value(4).toBool()){
+        _buy_msg = info.name + "\n" + _buy_msg;
+        post_owner(_buy_msg.toStdString());
+    }
+    //qDebug() << _buy_msg;
 }
 
 /*
@@ -742,8 +747,15 @@ void MainWindow::charge_card(){
     //チャージ完了画面
     QString _charged_msg = add_YEN(ui->charge->text().toInt()) + "チャージしました";
     post_slack(_charged_msg.toStdString(), info.member_id.toStdString());
-    _charged_msg = info.name + "\n" + _charged_msg;
-    post_owner(_charged_msg.toStdString());
+
+    //チャージ対象がオーナーか判定
+    query.exec("SELECT * FROM akapay WHERE name = '" + info.name + "'");
+    query.next();
+    if(!query.value(4).toBool()){
+        _charged_msg = info.name + "\n" + _charged_msg;
+        post_owner(_charged_msg.toStdString());
+    }
+
     auto dialog = new InfoDialog(this, _charged_msg.toStdString());
     dialog->exec();
 
@@ -896,36 +908,10 @@ void MainWindow::set_sellprice(int _price, int _items){
 
 
 
-int MainWindow::post_slack(std::string msg, std::string channel){
-    CURL *curl;
-    CURLcode res;
-    curl = curl_easy_init();
-    if(curl == nullptr){
-        qDebug() << "curl_easy_init() failed";
-        return -1;
-    }
-    struct curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    /*
-    Slack通知データ
-        channel: チャンネル名
-        text:    投稿内容
-        username:ユーザー名(9号館コンビニシステムで固定)
-        icon_emoji:アイコン(:smile_cat:で固定)
-        link_names:メンションを有効にする(1で固定)
-    */
-    std::string _msg = "{\"channel\":\"" + channel + "\",\"text\":\"" + msg + "\",\"username\":\"9号館コンビニシステム\",\"icon_emoji\":\":saposen:\",\"link_names\":1}";
-    curl_easy_setopt(curl, CURLOPT_URL, SLACK_URL);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, _msg.c_str());
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5); // Set timeout to 5 seconds
-    res = curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
-
-    if(res != CURLE_OK){
-        return -1;
-    }
-    return 0;
+void MainWindow::post_slack(std::string msg, std::string channel){
+    SlackPoster *poster = new SlackPoster(msg, channel);
+    connect(poster, &QThread::finished, poster, &QObject::deleteLater);
+    poster->start();
 }
 
 void MainWindow::post_owner(std::string msg){
