@@ -23,9 +23,15 @@
 #include <curl/curl.h>
 #include "CodeReader/codereader.hpp"
 #include "NFCReader/nfcreader.hpp"
+#include <QThread>
+#include <QDebug>
+#include <curl/curl.h>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui
+{
+    class MainWindow;
+}
 QT_END_NAMESPACE
 
 class InfoDialog : public QDialog
@@ -33,7 +39,7 @@ class InfoDialog : public QDialog
     Q_OBJECT
 public:
     InfoDialog(QWidget *parent = nullptr, std::string text = "")
-     : QDialog(parent)
+        : QDialog(parent)
     {
         setWindowTitle("Notice");
         setFixedSize(614, 196);
@@ -60,19 +66,23 @@ class DeviceReciever : public QObject
 {
     Q_OBJECT
 public:
-    explicit DeviceReciever(){}
-    ~DeviceReciever(){}
+    explicit DeviceReciever() {}
+    ~DeviceReciever() {}
 signals:
     void on_recieve(std::string recv);
 public slots:
-    void emit_recieve(std::string recv){
+    void emit_recieve(std::string recv)
+    {
         emit on_recieve(recv);
     }
+
 public:
-    void connect(std::string recv){
+    void connect(std::string recv)
+    {
         this->code = recv;
         emit_recieve(recv);
     }
+
 private:
     std::string code;
 };
@@ -82,11 +92,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr, CodeReader* reader = nullptr);
+    MainWindow(QWidget *parent = nullptr, CodeReader *reader = nullptr);
     ~MainWindow();
 
 private:
-    struct card_info{
+    struct card_info
+    {
         QString member_id;
         QString name;
         int balance;
@@ -94,7 +105,8 @@ private:
         bool is_admin;
     };
 
-    struct item_info{
+    struct item_info
+    {
         QString jan;
         QString name;
         int amount;
@@ -102,13 +114,13 @@ private:
     };
 
     Ui::MainWindow *ui;
-    CodeReader* jan;
-    NFCReader* nfc;
-    QTimer* return_timer;
+    CodeReader *jan;
+    NFCReader *nfc;
+    QTimer *return_timer;
     QSqlDatabase db;
-    DeviceReciever* jan_reciever;
-    DeviceReciever* nfc_reciever;
-    QMediaPlayer* player;
+    DeviceReciever *jan_reciever;
+    DeviceReciever *nfc_reciever;
+    QMediaPlayer *player;
 
     int amount_total;
     bool on_working;
@@ -117,8 +129,8 @@ private:
 
     void page_changed(int);
 
-    int getcardinfo(std::string, struct card_info*);
-    int getiteminfo(std::string, struct item_info*);
+    int getcardinfo(std::string, struct card_info *);
+    int getiteminfo(std::string, struct item_info *);
 
     void undo_clicked();
     void clean_clicked();
@@ -128,11 +140,11 @@ private:
     void amount_sum();
     void scanned(std::string);
     void add_item(std::string);
-    
+
     void back_clicked();
     void cash_clicked();
     void felica_scanned(std::string);
-    
+
     void return_to_pos();
 
     void initialize_db();
@@ -147,48 +159,63 @@ private:
     void item_info(std::string);
     void change_item_info();
     void add_stock();
-    void set_sellprice(int,int);
+    void set_sellprice(int, int);
     int calc_sellprice(const int);
 
     void post_slack(std::string, std::string);
     void post_owner(std::string);
 };
 
-#include <QThread>
-#include <QDebug>
-#include <curl/curl.h>
-
-class SlackPoster : public QThread {
+class SlackPoster : public QThread
+{
     Q_OBJECT
 private:
     std::string message;
     std::string channel;
-    const char* SLACK_URL = "https://hooks.slack.com/services/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";
+    char *SLACK_URL = NULL;
 
 public:
-    SlackPoster(const std::string &msg, const std::string &chn) : message(msg), channel(chn) {}
+    SlackPoster(const std::string &msg, const std::string &chn) : message(msg), channel(chn) {
+        SLACK_URL = getenv("SLACK_WEBHOOK_URL");
+    }
 
 protected:
-    void run() override {
+    void run() override
+    {
+        if(SLACK_URL == NULL)
+        {
+            qDebug() << "SLACK_WEBHOOK_URL is not set";
+            return;
+        }
         CURL *curl;
         CURLcode res;
         curl = curl_easy_init();
-        if(curl == nullptr){
+        if (curl == nullptr)
+        {
             qDebug() << "curl_easy_init() failed";
             return;
         }
-        struct curl_slist* headers = nullptr;
+        struct curl_slist *headers = nullptr;
         headers = curl_slist_append(headers, "Content-Type: application/json");
         std::string _msg = "{\"channel\":\"" + channel + "\",\"text\":\"" + message + "\",\"username\":\"9号館コンビニシステム\",\"icon_emoji\":\":saposen:\",\"link_names\":1}";
         curl_easy_setopt(curl, CURLOPT_URL, SLACK_URL);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, _msg.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5); // Set timeout to 5 seconds
+        qDebug() << "Posting to Slack: " << _msg.c_str();
+
         res = curl_easy_perform(curl);
+        if (res != CURLE_OK)
+        {
+            qDebug() << "curl_easy_perform() failed: " << curl_easy_strerror(res);
+        }else{
+            long response_code;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+            qDebug() << "Response code: " << response_code;
+        }
         curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
     }
 };
 
-
 #endif // MAINWINDOW_H
-

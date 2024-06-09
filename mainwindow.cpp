@@ -177,6 +177,9 @@ MainWindow::MainWindow(QWidget *parent, CodeReader* reader)
     query.exec("CREATE TABLE IF NOT EXISTS akapay (name TEXT PRIMARY KEY, memberID TEXT, point INTEGER, limit_debt INTEGER, is_admin BOOLEAN)");
     query.exec("CREATE TABLE IF NOT EXISTS card (IDm TEXT PRIMARY KEY, name TEXT)");
     query.exec("CREATE TABLE IF NOT EXISTS log (type INTEGER, date TIMESTAMP DEFAULT (DATETIME('now', 'localtime')), name TEXT, JAN TEXT, amount INTEGER, point INTEGER, num_item INTEGER, stock INTEGER)");
+
+    //Slack投稿テスト
+    post_slack("起動しました", "U027N7CAES1");
 }
 
 MainWindow::~MainWindow(){
